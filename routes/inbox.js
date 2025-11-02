@@ -136,7 +136,7 @@ router.post("/users/:username/inbox", async (req, res) => {
 
 		// Handle Accept Follow
 		if (activity.type === "Accept" && activity.object?.type === "Follow") {
-			const canonicalizedActor = canonicalizeActor(activity.object.object);
+			const canonicalizedActor = await canonicalizeActor(activity.object.object);
 
 			await Follow.updateOne(
 				{ follower: activity.object.actor, following: canonicalizedActor },
