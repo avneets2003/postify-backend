@@ -1,5 +1,4 @@
 const crypto = require("crypto");
-const fetch = require("node-fetch");
 
 function parseSignatureHeader(header) {
 	const parts = {};
