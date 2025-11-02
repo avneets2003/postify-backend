@@ -4,7 +4,7 @@ const ActivitySchema = new mongoose.Schema({
 	id: { type: String, required: true, unique: true },
 	type: {
 		type: String,
-		enum: ["Create", "Follow", "Undo", "Delete"],
+		enum: ["Create", "Follow", "Undo", "Accept"],
 		default: "Create",
 	},
 	actor: { type: String, required: true },

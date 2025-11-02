@@ -12,12 +12,29 @@ const router = express.Router();
 
 router.get("/users/:username/followers", async (req, res) => {
 	const followers = await Follow.find({ username: req.params.username });
+
+	res.setHeader("Content-Type", "application/activity+json");
 	res.json({
 		"@context": "https://www.w3.org/ns/activitystreams",
 		id: `${process.env.DOMAIN}/users/${req.params.username}/followers`,
 		type: "OrderedCollection",
 		totalItems: followers.length,
 		orderedItems: followers.map((f) => f.follower),
+	});
+});
+
+router.get("/users/:username/following", async (req, res) => {
+	const following = await Follow.find({
+		follower: `${process.env.DOMAIN}/users/${req.params.username}`,
+	});
+
+	res.setHeader("Content-Type", "application/activity+json");
+	res.json({
+		"@context": "https://www.w3.org/ns/activitystreams",
+		id: `${process.env.DOMAIN}/users/${req.params.username}/following`,
+		type: "OrderedCollection",
+		totalItems: following.length,
+		orderedItems: [...new Set(following.map((f) => f.username))],
 	});
 });
 
