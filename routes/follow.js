@@ -73,7 +73,7 @@ router.post("/users/:username/follow", async (req, res) => {
 		return res.status(400).send("Target actor has no inbox");
 	}
 
-	const followId = `https://${process.env.DOMAIN}/activities/${crypto.randomUUID()}`;
+	const followId = `${process.env.DOMAIN}/activities/${crypto.randomUUID()}`;
 	const followActivity = {
 		"@context": "https://www.w3.org/ns/activitystreams",
 		id: followId,
