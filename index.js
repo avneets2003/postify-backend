@@ -32,6 +32,15 @@ app.use(require("./routes/note"));
 app.use(require("./routes/activity"));
 app.use(require("./routes/follow"));
 
+app.use((req, res, next) => {
+	if (req.url.includes("/followers") || req.url.includes("/following")) {
+		console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+		console.log("User-Agent:", req.headers["user-agent"]);
+		console.log("Accept:", req.headers["accept"]);
+	}
+	next();
+});
+
 mongoose
 	.connect(process.env.MONGO_URI)
 	.then(() => {
