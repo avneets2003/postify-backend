@@ -19,7 +19,9 @@ if (missingVars.length > 0) {
 
 // Hello 1
 const app = express();
-app.use(express.json());
+app.use(
+	express.json({ type: ["application/json", "application/activity+json"] }),
+);
 
 // Routes
 app.use(require("./routes/webfinger"));

@@ -6,7 +6,11 @@ const Activity = require("../models/activity");
 
 router.post("/users/:username/inbox", async (req, res) => {
 	const activity = req.body;
-    console.log("Incoming ActivityPub request:", JSON.stringify(req.body, null, 2));
+	console.log(
+		"Incoming ActivityPub request:",
+		JSON.stringify(req.body, null, 2),
+	);
+    console.log("Content-Type:", req.headers['content-type']);
 	const actorId = activity?.actor;
 	const objectId =
 		typeof activity?.object === "string"
