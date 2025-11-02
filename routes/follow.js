@@ -11,30 +11,36 @@ const createSignatureHeader = require("../utils/createSignatureHeader");
 const router = express.Router();
 
 router.get("/users/:username/followers", async (req, res) => {
-	const followers = await Follow.find({ username: req.params.username });
+	const actorId = `https://${process.env.DOMAIN}/users/${req.params.username}`;
+	const followers = await Follow.find({
+		following: actorId,
+		status: "accepted",
+	});
 
 	res.setHeader("Content-Type", "application/activity+json");
 	res.json({
 		"@context": "https://www.w3.org/ns/activitystreams",
-		id: `${process.env.DOMAIN}/users/${req.params.username}/followers`,
+		id: `${actorId}/followers`,
 		type: "OrderedCollection",
 		totalItems: followers.length,
-		orderedItems: followers.map((f) => f.follower),
+		orderedItems: [...new Set(followers.map((f) => f.follower))],
 	});
 });
 
 router.get("/users/:username/following", async (req, res) => {
+	const actorId = `https://${process.env.DOMAIN}/users/${req.params.username}`;
 	const following = await Follow.find({
-		follower: `${process.env.DOMAIN}/users/${req.params.username}`,
+		follower: actorId,
+		status: "accepted",
 	});
 
 	res.setHeader("Content-Type", "application/activity+json");
 	res.json({
 		"@context": "https://www.w3.org/ns/activitystreams",
-		id: `${process.env.DOMAIN}/users/${req.params.username}/following`,
+		id: `${actorId}/following`,
 		type: "OrderedCollection",
 		totalItems: following.length,
-		orderedItems: [...new Set(following.map((f) => f.username))],
+		orderedItems: [...new Set(following.map((f) => f.following))],
 	});
 });
 
@@ -47,16 +53,27 @@ router.post("/users/:username/follow", async (req, res) => {
 	}
 
 	const actor = await Actor.findOne({ preferredUsername: username });
-	if (!actor) return res.status(404).send("Actor not found");
+	if (!actor || !actor.privateKeyPem) {
+		return res.status(404).send("Local actor not found or missing private key");
+	}
 
-	const response = await fetch(targetActorUrl, {
-		headers: { Accept: "application/activity+json" },
-	});
-	const targetActor = await response.json();
+	let targetActor;
+	try {
+		const response = await fetch(targetActorUrl, {
+			headers: { Accept: "application/activity+json" },
+		});
+		targetActor = await response.json();
+	} catch (err) {
+		console.error("Failed to fetch target actor:", err);
+		return res.status(400).send("Invalid target actor URL");
+	}
+
 	const inbox = targetActor?.inbox;
-	if (!inbox) return res.status(400).send("Target actor has no inbox");
+	if (!inbox) {
+		return res.status(400).send("Target actor has no inbox");
+	}
 
-	const followId = `${process.env.DOMAIN}/activities/${crypto.randomUUID()}`;
+	const followId = `https://${process.env.DOMAIN}/activities/${crypto.randomUUID()}`;
 	const followActivity = {
 		"@context": "https://www.w3.org/ns/activitystreams",
 		id: followId,
@@ -94,13 +111,27 @@ router.post("/users/:username/follow", async (req, res) => {
 			body,
 		});
 
-		console.log(`Follow response: ${inboxResponse.status}`);
-		if (inboxResponse.status !== 202) {
-			const error = await inboxResponse.json();
-			console.log(error);
-		}
+		if (inboxResponse.status === 202) {
+			try {
+				await Follow.create({
+					follower: actor.id,
+					following: targetActorUrl,
+					status: "pending",
+				});
+			} catch (err) {
+				if (err.code === 11000) {
+					console.log("Follow already exists");
+				} else {
+					throw err;
+				}
+			}
 
-		res.status(200).json({ followActivity });
+			return res.status(200).json({ followActivity });
+		} else {
+			const error = await inboxResponse.text();
+			console.warn("Remote inbox error:", error);
+			return res.status(502).send("Remote server rejected follow request");
+		}
 	} catch (err) {
 		console.error("Follow error:", err);
 		res.status(500).send("Failed to send follow");

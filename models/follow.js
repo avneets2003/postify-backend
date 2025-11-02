@@ -1,12 +1,14 @@
 const mongoose = require("mongoose");
 
 const FollowSchema = new mongoose.Schema({
-	username: { type: String, required: true },
 	follower: { type: String, required: true },
+	following: { type: String, required: true },
+	status: { type: String, enum: ["pending", "accepted"], default: "pending" },
+	createdAt: { type: Date, default: Date.now },
 });
 
-FollowSchema.index({ username: 1, follower: 1 }, { unique: true });
+FollowSchema.index({ follower: 1, following: 1 }, { unique: true });
 
-const Follow = mongoose.model("Follower", FollowSchema);
+const Follow = mongoose.model("Follow", FollowSchema);
 
 module.exports = Follow;

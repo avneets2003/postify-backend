@@ -47,10 +47,10 @@ router.post("/users/:username/inbox", async (req, res) => {
 
 		// Handle Follow
 		if (activity.type === "Follow") {
-			await Follow.create({
-				username: req.params.username,
-				follower: actorId,
-			});
+			await Follow.updateOne(
+				{ follower: activity.actor, following: recipientId },
+				{ $set: { status: "accepted" } },
+			);
 
 			const acceptActivity = {
 				"@context": "https://www.w3.org/ns/activitystreams",
@@ -107,8 +107,8 @@ router.post("/users/:username/inbox", async (req, res) => {
 		// Handle Undo Follow
 		if (activity.type === "Undo" && activity.object?.type === "Follow") {
 			await Follow.deleteOne({
-				username: req.params.username,
 				follower: activity.actor,
+				following: recipientId,
 			});
 		}
 
