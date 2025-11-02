@@ -3,6 +3,7 @@ const router = express.Router();
 
 // Models
 const Activity = require("../models/activity");
+const Follow = require("../models/follow");
 
 router.post("/users/:username/inbox", async (req, res) => {
 	const activity = req.body;
@@ -30,7 +31,7 @@ router.post("/users/:username/inbox", async (req, res) => {
 	// Handle Follow activity
 	if (activity.type === "Follow") {
 		try {
-			await Follower.create({
+			await Follow.create({
 				username: req.params.username,
 				follower: actorId,
 			});
@@ -66,7 +67,7 @@ router.post("/users/:username/inbox", async (req, res) => {
 	// Handle Undo Follow
 	if (activity.type === "Undo" && activity.object?.type === "Follow") {
 		try {
-			await Follower.deleteOne({
+			await Follow.deleteOne({
 				username: req.params.username,
 				follower: activity.actor,
 			});

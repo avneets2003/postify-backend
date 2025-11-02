@@ -2,7 +2,7 @@ const crypto = require("crypto");
 const express = require("express");
 
 // Models
-const Follower = require("../models/follower");
+const Follow = require("../models/follow");
 const Actor = require("../models/actor");
 
 // Utilities
@@ -11,7 +11,7 @@ const createSignatureHeader = require("../utils/security");
 const router = express.Router();
 
 router.get("/users/:username/followers", async (req, res) => {
-	const followers = await Follower.find({ username: req.params.username });
+	const followers = await Follow.find({ username: req.params.username });
 	res.json({
 		"@context": "https://www.w3.org/ns/activitystreams",
 		id: `${process.env.DOMAIN}/users/${req.params.username}/followers`,
