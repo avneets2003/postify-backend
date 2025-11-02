@@ -7,7 +7,7 @@ const Actor = require("../models/actor");
 const Note = require("../models/note");
 
 // Utilities
-const createSignatureHeader = require("../utils/security");
+const createSignatureHeader = require("../utils/createSignatureHeader");
 
 const router = express.Router();
 

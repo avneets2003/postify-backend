@@ -6,7 +6,7 @@ const Follow = require("../models/follow");
 const Actor = require("../models/actor");
 
 // Utilities
-const createSignatureHeader = require("../utils/security");
+const createSignatureHeader = require("../utils/createSignatureHeader");
 
 const router = express.Router();
 
