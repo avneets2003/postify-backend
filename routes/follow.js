@@ -115,7 +115,7 @@ router.post("/users/:username/follow", async (req, res) => {
 			try {
 				await Follow.create({
 					follower: actor.id,
-					following: targetActorUrl,
+					following: targetActor.id,
 					status: "pending",
 				});
 			} catch (err) {
