@@ -47,10 +47,11 @@ router.post("/users/:username/inbox", async (req, res) => {
 
 		// Handle Follow
 		if (activity.type === "Follow") {
-			await Follow.updateOne(
-				{ follower: activity.actor, following: recipientId },
-				{ $set: { status: "accepted" } },
-			);
+			await Follow.create({
+				follower: activity.actor,
+				following: recipientId,
+				status: "pending",
+			});
 
 			const acceptActivity = {
 				"@context": "https://www.w3.org/ns/activitystreams",
@@ -101,6 +102,15 @@ router.post("/users/:username/inbox", async (req, res) => {
 				console.log("Inbox response status:", inboxResponse.status);
 				const responseText = await inboxResponse.text();
 				console.log("Inbox response body:", responseText);
+
+				if (inboxResponse.status === 202) {
+					await Follow.updateOne(
+						{ follower: activity.actor, following: recipientId },
+						{ $set: { status: "accepted" } },
+					);
+				} else {
+					console.warn("Accept delivery failed, follow not marked as accepted");
+				}
 			}
 		}
 
@@ -110,6 +120,14 @@ router.post("/users/:username/inbox", async (req, res) => {
 				follower: activity.actor,
 				following: recipientId,
 			});
+		}
+
+		// Handle Accept Follow
+		if (activity.type === "Accept" && activity.object?.type === "Follow") {
+			await Follow.updateOne(
+				{ follower: activity.object.actor, following: activity.object.object },
+				{ $set: { status: "accepted" } },
+			);
 		}
 
 		res.status(202).send("Accepted");

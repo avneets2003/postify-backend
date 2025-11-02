@@ -11,7 +11,7 @@ const createSignatureHeader = require("../utils/createSignatureHeader");
 const router = express.Router();
 
 router.get("/users/:username/followers", async (req, res) => {
-	const actorId = `https://${process.env.DOMAIN}/users/${req.params.username}`;
+	const actorId = `${process.env.DOMAIN}/users/${req.params.username}`;
 	const followers = await Follow.find({
 		following: actorId,
 		status: "accepted",
@@ -28,7 +28,7 @@ router.get("/users/:username/followers", async (req, res) => {
 });
 
 router.get("/users/:username/following", async (req, res) => {
-	const actorId = `https://${process.env.DOMAIN}/users/${req.params.username}`;
+	const actorId = `${process.env.DOMAIN}/users/${req.params.username}`;
 	const following = await Follow.find({
 		follower: actorId,
 		status: "accepted",
