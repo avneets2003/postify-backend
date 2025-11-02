@@ -14,6 +14,11 @@ const verifySignatureHeader = require("../utils/verifySignatureHeader");
 
 router.post("/users/:username/inbox", async (req, res) => {
 	try {
+        // Reject Delete activities for now to avoid irritating attacks
+		if (activity.type === "Delete") {
+			return res.status(403).send("Delete activities are not supported");
+		}
+
 		const actor = await verifySignatureHeader(req);
 		const activity = req.body;
 		console.log(
@@ -53,6 +58,10 @@ router.post("/users/:username/inbox", async (req, res) => {
 				actor: recipientId,
 				object: activity,
 			};
+            console.log(
+                "Accept activity:",
+                JSON.stringify(acceptActivity, null, 2),
+            );
 
 			const inbox = actor?.inbox;
 			if (inbox) {
@@ -103,11 +112,6 @@ router.post("/users/:username/inbox", async (req, res) => {
 				username: req.params.username,
 				follower: activity.actor,
 			});
-		}
-
-		// Reject Delete activities
-		if (activity.type === "Delete") {
-			return res.status(403).send("Delete activities are not supported");
 		}
 
 		res.status(202).send("Accepted");
