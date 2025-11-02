@@ -12,6 +12,18 @@ const Actor = require("../models/actor");
 const createSignatureHeader = require("../utils/createSignatureHeader");
 const verifySignatureHeader = require("../utils/verifySignatureHeader");
 
+const canonicalizeActor = async (actorUrl) => {
+	try {
+		const res = await fetch(actorUrl, {
+			headers: { Accept: "application/activity+json" },
+		});
+		const actor = await res.json();
+		return actor.id || actorUrl;
+	} catch {
+		return actorUrl;
+	}
+};
+
 router.post("/users/:username/inbox", async (req, res) => {
 	try {
 		const activity = req.body;
@@ -124,9 +136,12 @@ router.post("/users/:username/inbox", async (req, res) => {
 
 		// Handle Accept Follow
 		if (activity.type === "Accept" && activity.object?.type === "Follow") {
+			const canonicalizedActor = canonicalizeActor(activity.object.object);
+
 			await Follow.updateOne(
-				{ follower: activity.object.actor, following: activity.object.object },
+				{ follower: activity.object.actor, following: canonicalizedActor },
 				{ $set: { status: "accepted" } },
+				{ upsert: true },
 			);
 		}
 
