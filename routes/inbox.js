@@ -33,7 +33,7 @@ router.post("/users/:username/inbox", async (req, res) => {
 				? activity.object
 				: activity?.object?.id;
 		const published = activity?.published || new Date().toISOString();
-		const recipientId = `https://${process.env.DOMAIN}/users/${req.params.username}`;
+		const recipientId = `${process.env.DOMAIN}/users/${req.params.username}`;
 
 		await Activity.create({
 			id:
