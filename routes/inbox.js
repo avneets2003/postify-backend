@@ -10,7 +10,6 @@ router.post("/users/:username/inbox", async (req, res) => {
 		"Incoming ActivityPub request:",
 		JSON.stringify(req.body, null, 2),
 	);
-    console.log("Content-Type:", req.headers['content-type']);
 	const actorId = activity?.actor;
 	const objectId =
 		typeof activity?.object === "string"
@@ -61,6 +60,18 @@ router.post("/users/:username/inbox", async (req, res) => {
 			}
 		} catch (err) {
 			console.error("Error handling Follow:", err);
+		}
+	}
+
+	// Handle Undo Follow
+	if (activity.type === "Undo" && activity.object?.type === "Follow") {
+		try {
+			await Follower.deleteOne({
+				username: req.params.username,
+				follower: activity.actor,
+			});
+		} catch (err) {
+			console.error("Error handling Undo Follow:", err);
 		}
 	}
 
