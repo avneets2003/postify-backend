@@ -32,6 +32,7 @@ router.post("/users", async (req, res) => {
 	const inbox = `${actorId}/inbox`;
 	const outbox = `${actorId}/outbox`;
 	const followers = `${actorId}/followers`;
+    const following = `${actorId}/following`;
 
 	const keyPair = crypto.generateKeyPairSync("rsa", {
 		modulusLength: 2048,
@@ -46,6 +47,7 @@ router.post("/users", async (req, res) => {
 		inbox,
 		outbox,
 		followers,
+        following,
 		publicKey: {
 			id: `${actorId}#main-key`,
 			owner: actorId,

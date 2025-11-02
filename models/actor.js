@@ -7,6 +7,7 @@ const ActorSchema = new mongoose.Schema({
 	inbox: { type: String, required: true },
 	outbox: { type: String, required: true },
 	followers: { type: String, required: true },
+    following: { type: String, required: true },
 	publicKey: {
 		id: { type: String, required: true },
 		owner: { type: String, required: true },
