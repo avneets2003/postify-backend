@@ -10,38 +10,100 @@ const createSignatureHeader = require("../utils/createSignatureHeader");
 
 const router = express.Router();
 
+const PAGE_SIZE = 10;
+
 router.get("/users/:username/followers", async (req, res) => {
 	const actorId = `${process.env.DOMAIN}/users/${req.params.username}`;
-	const followers = await Follow.find({
+	const page = parseInt(req.query.page);
+
+	const total = await Follow.countDocuments({
 		following: actorId,
 		status: "accepted",
 	});
 
 	res.setHeader("Content-Type", "application/activity+json");
-	res.json({
-		"@context": "https://www.w3.org/ns/activitystreams",
-		id: `${actorId}/followers`,
-		type: "OrderedCollection",
-		totalItems: followers.length,
-		orderedItems: [...new Set(followers.map((f) => f.follower))],
-	});
+
+	if (!page) {
+		// Return OrderedCollection
+		res.json({
+			"@context": "https://www.w3.org/ns/activitystreams",
+			id: `${actorId}/followers`,
+			type: "OrderedCollection",
+			totalItems: total,
+			first: `${actorId}/followers?page=1`,
+		});
+	} else {
+		// Return OrderedCollectionPage
+		const skip = (page - 1) * PAGE_SIZE;
+		const followers = await Follow.find({
+			following: actorId,
+			status: "accepted",
+		})
+			.skip(skip)
+			.limit(PAGE_SIZE);
+
+		const items = [...new Set(followers.map((f) => f.follower))];
+
+		res.json({
+			"@context": "https://www.w3.org/ns/activitystreams",
+			id: `${actorId}/followers?page=${page}`,
+			type: "OrderedCollectionPage",
+			partOf: `${actorId}/followers`,
+			totalItems: total,
+			orderedItems: items,
+			next:
+				page * PAGE_SIZE < total
+					? `${actorId}/followers?page=${page + 1}`
+					: undefined,
+		});
+	}
 });
 
 router.get("/users/:username/following", async (req, res) => {
 	const actorId = `${process.env.DOMAIN}/users/${req.params.username}`;
-	const following = await Follow.find({
+	const page = parseInt(req.query.page);
+
+	const total = await Follow.countDocuments({
 		follower: actorId,
 		status: "accepted",
 	});
 
 	res.setHeader("Content-Type", "application/activity+json");
-	res.json({
-		"@context": "https://www.w3.org/ns/activitystreams",
-		id: `${actorId}/following`,
-		type: "OrderedCollection",
-		totalItems: following.length,
-		orderedItems: [...new Set(following.map((f) => f.following))],
-	});
+
+	if (!page) {
+		// Return OrderedCollection metadata
+		res.json({
+			"@context": "https://www.w3.org/ns/activitystreams",
+			id: `${actorId}/following`,
+			type: "OrderedCollection",
+			totalItems: total,
+			first: `${actorId}/following?page=1`,
+		});
+	} else {
+		// Return OrderedCollectionPage
+		const skip = (page - 1) * PAGE_SIZE;
+		const following = await Follow.find({
+			follower: actorId,
+			status: "accepted",
+		})
+			.skip(skip)
+			.limit(PAGE_SIZE);
+
+		const items = [...new Set(following.map((f) => f.following))];
+
+		res.json({
+			"@context": "https://www.w3.org/ns/activitystreams",
+			id: `${actorId}/following?page=${page}`,
+			type: "OrderedCollectionPage",
+			partOf: `${actorId}/following`,
+			totalItems: total,
+			orderedItems: items,
+			next:
+				page * PAGE_SIZE < total
+					? `${actorId}/following?page=${page + 1}`
+					: undefined,
+		});
+	}
 });
 
 router.post("/users/:username/follow", async (req, res) => {
@@ -74,6 +136,15 @@ router.post("/users/:username/follow", async (req, res) => {
 	}
 
 	const followId = `${process.env.DOMAIN}/activities/${crypto.randomUUID()}`;
+
+	await Activity.create({
+		id: followId,
+		type: "Follow",
+		actor: actor.id,
+		object: targetActorUrl,
+		published: new Date().toISOString(),
+	});
+
 	const followActivity = {
 		"@context": "https://www.w3.org/ns/activitystreams",
 		id: followId,
