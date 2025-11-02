@@ -14,17 +14,18 @@ const verifySignatureHeader = require("../utils/verifySignatureHeader");
 
 router.post("/users/:username/inbox", async (req, res) => {
 	try {
+        const activity = req.body;
+
         // Reject Delete activities for now to avoid irritating attacks
 		if (activity.type === "Delete") {
 			return res.status(403).send("Delete activities are not supported");
 		}
-
-		const actor = await verifySignatureHeader(req);
-		const activity = req.body;
-		console.log(
+        console.log(
 			"Incoming ActivityPub request:",
 			JSON.stringify(activity, null, 2),
 		);
+
+		const actor = await verifySignatureHeader(req);
 
 		const actorId = activity?.actor;
 		const objectId =
