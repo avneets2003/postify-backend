@@ -4,13 +4,21 @@ const router = express.Router();
 
 router.get("/.well-known/webfinger", async (req, res) => {
 	const resource = req.query.resource;
-	const username = resource?.split(":")[1];
 
-	if (!username) return res.status(400).send("Missing resource");
+	if (!resource || !resource.startsWith("acct:")) {
+		return res.status(400).send("Missing or invalid resource");
+	}
 
-	const actorUrl = `${process.env.DOMAIN}/users/${username}`;
+	const [username, domain] = resource.slice(5).split("@");
+
+	if (!username || !domain) {
+		return res.status(400).send("Invalid resource format");
+	}
+
+	const actorUrl = `https://${domain}/users/${username}`;
+
 	res.json({
-		subject: resource,
+		subject: `acct:${username}@${domain}`,
 		links: [
 			{
 				rel: "self",
