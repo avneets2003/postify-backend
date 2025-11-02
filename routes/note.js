@@ -55,12 +55,14 @@ router.post("/notes", async (req, res) => {
 			id: activity.id,
 			type: "Create",
 			actor: actor.id,
+			to: ["https://www.w3.org/ns/activitystreams#Public"],
 			object: {
 				id: note.id,
 				type: "Note",
 				attributedTo: actor.id,
 				content,
 				published,
+				to: ["https://www.w3.org/ns/activitystreams#Public"],
 			},
 			published,
 		});
@@ -94,8 +96,11 @@ router.post("/notes", async (req, res) => {
 			});
 
 			console.log(`Remote inbox response: ${response.status}`);
-			const json = await response.json();
-			console.log(json);
+
+			if (response.status !== 202) {
+				const error = await response.json();
+				console.log(error);
+			}
 		} catch (err) {
 			console.error("Remote inbox error:", err);
 		}

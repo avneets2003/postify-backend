@@ -12,8 +12,7 @@ router.post("/users/:username/inbox", async (req, res) => {
 			? activity.object
 			: activity?.object?.id;
 	const published = activity?.published || new Date().toISOString();
-
-	// TODO: Verify HTTP signature
+	const recipientId = `https://${process.env.DOMAIN}/users/${req.params.username}`;
 
 	await Activity.create({
 		id:
@@ -23,6 +22,42 @@ router.post("/users/:username/inbox", async (req, res) => {
 		object: objectId,
 		published,
 	});
+
+	// Handle Follow activity
+	if (activity.type === "Follow") {
+		try {
+			await Follower.create({
+				username: req.params.username,
+				follower: actorId,
+			});
+
+			const acceptActivity = {
+				"@context": "https://www.w3.org/ns/activitystreams",
+				id: `${process.env.DOMAIN}/activities/${crypto.randomUUID()}`,
+				type: "Accept",
+				actor: recipientId,
+				object: activity,
+			};
+
+			const response = await fetch(actorId, {
+				headers: { Accept: "application/activity+json" },
+			});
+			const followerActor = await response.json();
+			const inbox = followerActor?.inbox;
+
+			if (inbox) {
+				await fetch(inbox, {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/activity+json",
+					},
+					body: JSON.stringify(acceptActivity),
+				});
+			}
+		} catch (err) {
+			console.error("Error handling Follow:", err);
+		}
+	}
 
 	res.status(202).send("Accepted");
 });

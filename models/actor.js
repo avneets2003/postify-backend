@@ -6,6 +6,7 @@ const ActorSchema = new mongoose.Schema({
 	preferredUsername: { type: String, required: true, unique: true },
 	inbox: { type: String, required: true },
 	outbox: { type: String, required: true },
+	followers: { type: String, required: true },
 	publicKey: {
 		id: { type: String, required: true },
 		owner: { type: String, required: true },

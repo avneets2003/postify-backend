@@ -19,6 +19,7 @@ router.get("/users/:username", async (req, res) => {
 		preferredUsername: actor.preferredUsername,
 		inbox: actor.inbox,
 		outbox: actor.outbox,
+		followers: actor.followers,
 		publicKey: actor.publicKey,
 	});
 });
@@ -30,6 +31,7 @@ router.post("/users", async (req, res) => {
 	const actorId = `${process.env.DOMAIN}/users/${username}`;
 	const inbox = `${actorId}/inbox`;
 	const outbox = `${actorId}/outbox`;
+	const followers = `${actorId}/followers`;
 
 	const keyPair = crypto.generateKeyPairSync("rsa", {
 		modulusLength: 2048,
@@ -43,6 +45,7 @@ router.post("/users", async (req, res) => {
 		type: "Person",
 		inbox,
 		outbox,
+		followers,
 		publicKey: {
 			id: `${actorId}#main-key`,
 			owner: actorId,
@@ -61,6 +64,7 @@ router.post("/users", async (req, res) => {
 		preferredUsername: actor.preferredUsername,
 		inbox: actor.inbox,
 		outbox: actor.outbox,
+		followers: actor.followers,
 		publicKey: {
 			id: actor.publicKey.id,
 			owner: actor.publicKey.owner,

@@ -28,6 +28,7 @@ app.use(require("./routes/inbox"));
 app.use(require("./routes/outbox"));
 app.use(require("./routes/note"));
 app.use(require("./routes/activity"));
+app.use(require("./routes/follow"));
 
 mongoose
 	.connect(process.env.MONGO_URI)
