@@ -49,15 +49,21 @@ router.post("/users/:username/inbox", async (req, res) => {
 			});
 			const followerActor = await response.json();
 			const inbox = followerActor?.inbox;
+			console.log("Follower inbox:", inbox);
+			console.log("Accept activity:", JSON.stringify(acceptActivity, null, 2));
 
 			if (inbox) {
-				await fetch(inbox, {
+				const inboxResponse = await fetch(inbox, {
 					method: "POST",
 					headers: {
 						"Content-Type": "application/activity+json",
 					},
 					body: JSON.stringify(acceptActivity),
 				});
+
+				console.log("Inbox response status:", inboxResponse.status);
+				const responseText = await inboxResponse.text();
+				console.log("Inbox response body:", responseText);
 			}
 		} catch (err) {
 			console.error("Error handling Follow:", err);
