@@ -10,7 +10,7 @@ const Actor = require("../models/actor");
 
 // Utilities
 const createSignatureHeader = require("../utils/createSignatureHeader");
-const verifySignatureHeader = require("./verifySignatureHeader");
+const verifySignatureHeader = require("../utils/verifySignatureHeader");
 
 router.post("/users/:username/inbox", async (req, res) => {
 	try {
