@@ -20,6 +20,7 @@ router.get("/users/:username", async (req, res) => {
 		inbox: actor.inbox,
 		outbox: actor.outbox,
 		followers: actor.followers,
+		following: actor.following,
 		publicKey: actor.publicKey,
 	});
 });
@@ -67,6 +68,7 @@ router.post("/users", async (req, res) => {
 		inbox: actor.inbox,
 		outbox: actor.outbox,
 		followers: actor.followers,
+		following: actor.following,
 		publicKey: {
 			id: actor.publicKey.id,
 			owner: actor.publicKey.owner,
