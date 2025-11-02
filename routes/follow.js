@@ -4,6 +4,7 @@ const express = require("express");
 // Models
 const Follow = require("../models/follow");
 const Actor = require("../models/actor");
+const Activity = require("../models/activity");
 
 // Utilities
 const createSignatureHeader = require("../utils/createSignatureHeader");
@@ -13,10 +14,6 @@ const router = express.Router();
 const PAGE_SIZE = 10;
 
 router.get("/users/:username/followers", async (req, res) => {
-	console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
-	console.log("User-Agent:", req.headers["user-agent"]);
-	console.log("Accept:", req.headers["accept"]);
-
 	const actorId = `${process.env.DOMAIN}/users/${req.params.username}`;
 	const page = parseInt(req.query.page);
 
@@ -64,10 +61,6 @@ router.get("/users/:username/followers", async (req, res) => {
 });
 
 router.get("/users/:username/following", async (req, res) => {
-	console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
-	console.log("User-Agent:", req.headers["user-agent"]);
-	console.log("Accept:", req.headers["accept"]);
-
 	const actorId = `${process.env.DOMAIN}/users/${req.params.username}`;
 	const page = parseInt(req.query.page);
 
